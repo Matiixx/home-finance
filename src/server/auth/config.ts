@@ -48,5 +48,10 @@ export const authConfig = {
         id: token.sub,
       },
     }),
+    redirect: async ({ baseUrl }) => {
+      // create user in convex if not exists
+
+      return baseUrl;
+    },
   },
 } satisfies NextAuthConfig;
