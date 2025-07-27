@@ -9,13 +9,19 @@ export const createUser = mutation({
     image: v.string(),
   },
   handler: async (ctx, args) => {
-    // Check if user already exists
+    // Check if user already exists by Discord ID
     const existingUser = await ctx.db
       .query("user")
       .filter((q) => q.eq(q.field("id"), args.id))
       .first();
 
     if (existingUser) {
+      // Update user info in case it changed
+      await ctx.db.patch(existingUser._id, {
+        name: args.name,
+        email: args.email,
+        image: args.image,
+      });
       return existingUser._id;
     }
 

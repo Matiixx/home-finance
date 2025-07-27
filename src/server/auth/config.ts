@@ -16,6 +16,10 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 
+  interface JWT {
+    discordId?: string;
+  }
+
   // interface User {
   //   // ...other properties
   //   // role: UserRole;
@@ -41,16 +45,21 @@ export const authConfig = {
      */
   ],
   callbacks: {
+    jwt: ({ token, account, profile }) => {
+      // Persist the Discord user ID from the OAuth profile
+      if (account?.provider === "discord" && profile) {
+        token.discordId = profile.id;
+      }
+      return token;
+    },
     session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: token.sub,
+        id: token.discordId as string,
       },
     }),
     redirect: async ({ baseUrl }) => {
-      // create user in convex if not exists
-
       return baseUrl;
     },
   },
