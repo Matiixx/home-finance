@@ -63,7 +63,6 @@ export default function Home() {
               <XAxis
                 dataKey="date"
                 tickFormatter={(value: number) => {
-                  console.log("🚀 ~ tickFormatter ~ value:", value);
                   return dayjs(value).format("DD/MM/YYYY");
                 }}
                 tickMargin={8}
