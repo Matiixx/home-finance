@@ -62,7 +62,7 @@ export const getAssetRecords = query({
       },
       {} as Record<number, { value: number; date: number }>,
     );
-    const sortedRecords = sortBy(groupedRecords, (a) => -a.date);
+    const sortedRecords = sortBy(groupedRecords, (a) => a.date);
     return sortedRecords;
   },
 });
