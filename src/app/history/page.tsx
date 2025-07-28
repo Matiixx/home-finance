@@ -24,6 +24,7 @@ import {
 } from "~/components/ui/card";
 
 import { api } from "../../../convex/_generated/api";
+import { formatCurrency } from "~/lib/utils";
 
 export default function Home() {
   const session = useSession();
@@ -145,10 +146,3 @@ export default function Home() {
     </main>
   );
 }
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("pl-PL", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};

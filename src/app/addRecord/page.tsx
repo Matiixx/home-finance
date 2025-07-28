@@ -9,12 +9,15 @@ import dayjs from "dayjs";
 import every from "lodash/every";
 import isEmpty from "lodash/isEmpty";
 import map from "lodash/map";
+import reduce from "lodash/reduce";
 
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+
+import { formatCurrency } from "~/lib/utils";
 
 import { api } from "../../../convex/_generated/api";
 
@@ -102,6 +105,12 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="flex justify-end pt-4">
+              <Label className="text-base font-medium text-black">
+                Total Value:{" "}
+                {formatCurrency(reduce(values, (acc, value) => acc + value, 0))}
+              </Label>
             </div>
 
             <div className="pt-4">
