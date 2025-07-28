@@ -84,7 +84,7 @@ export default function Home() {
               <div className="space-y-3">
                 {map(assets, (asset, index) => (
                   <div key={index} className="flex items-center space-x-3">
-                    <Label className="w-12 text-sm font-medium text-black">
+                    <Label className="flex-shrink-0 text-sm font-medium text-black">
                       {asset.name}
                     </Label>
                     <Input
@@ -104,7 +104,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Subm<Button onClick={handleAddRecord}>Add Record</Button>it Button */}
             <div className="pt-4">
               <Button
                 onClick={handleAddRecord}
