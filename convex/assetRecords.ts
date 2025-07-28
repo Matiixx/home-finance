@@ -1,6 +1,10 @@
-import { reduce, sortBy } from "lodash";
-import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+
+import reduce from "lodash/reduce";
+import sortBy from "lodash/sortBy";
+
+import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 export const addAssetRecord = mutation({
   args: {
@@ -64,5 +68,56 @@ export const getAssetRecords = query({
     );
     const sortedRecords = sortBy(groupedRecords, (a) => a.date);
     return sortedRecords;
+  },
+});
+
+export const getAssetHistory = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const records = await ctx.db
+      .query("assetRecord")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .collect();
+
+    const groupedRecords = reduce(
+      records,
+      (acc, record) => {
+        acc[record.date] = acc[record.date] ?? {
+          date: record.date,
+          assetValues: {},
+        };
+        acc[record.date]!.assetValues[record.assetId] = {
+          value: record.value,
+          assetRecordId: record._id,
+        };
+        return acc;
+      },
+      {} as Record<
+        number,
+        {
+          date: number;
+          assetValues: Record<
+            string,
+            {
+              value: number;
+              assetRecordId: Id<"assetRecord">;
+            }
+          >;
+        }
+      >,
+    );
+
+    return groupedRecords;
+  },
+});
+
+export const deleteAssetRecord = mutation({
+  args: { ids: v.array(v.id("assetRecord")) },
+  handler: async (ctx, args) => {
+    for (const id of args.ids) {
+      await ctx.db.delete(id);
+    }
   },
 });
