@@ -13,6 +13,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "~/components/ui/chart";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Area,
   AreaChart,
@@ -40,55 +41,57 @@ export default function Home() {
   );
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
       <div className="container flex flex-col items-center justify-center gap-6 px-4 py-16">
         <Link href="/">
-          <Button variant="outline" className="bg-black">
-            Home
-          </Button>
+          <Button variant="outline">Home</Button>
         </Link>
-        <h1>Add Record Page</h1>
-        {session.data?.user ? (
-          <p>Welcome, {session.data.user.name}!</p>
-        ) : (
-          <p>Please sign in</p>
-        )}
-        <ResponsiveContainer width={"100%"} height={500}>
-          <ChartContainer config={chartConfig} className="h-full w-full">
-            <AreaChart
-              data={assetsRecords ?? []}
-              margin={{ left: 12, right: 12, bottom: 20, top: 20 }}
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickFormatter={(value: number) => {
-                  return dayjs(value).format("DD/MM/YYYY");
-                }}
-                tickMargin={8}
-                axisLine={false}
-              />
-              <YAxis
-                dataKey="value"
-                tickFormatter={(value: number) => {
-                  return value.toLocaleString() + " PLN";
-                }}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator="dot" hideLabel />}
-              />
 
-              <Area
-                dataKey="value"
-                type="linear"
-                fill="var(--color-desktop)"
-                fillOpacity={0.4}
-                stroke="var(--color-desktop)"
-              />
-            </AreaChart>
-          </ChartContainer>
-        </ResponsiveContainer>
+        <Card className="w-full border border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold text-black">
+              Chart
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width={"100%"} height={500}>
+              <ChartContainer config={chartConfig} className="h-full w-full">
+                <AreaChart
+                  data={assetsRecords ?? []}
+                  margin={{ left: 12, right: 12, bottom: 20, top: 20 }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(value: number) => {
+                      return dayjs(value).format("DD/MM/YYYY");
+                    }}
+                    tickMargin={8}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    dataKey="value"
+                    tickFormatter={(value: number) => {
+                      return value.toLocaleString() + " PLN";
+                    }}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dot" hideLabel />}
+                  />
+
+                  <Area
+                    dataKey="value"
+                    type="linear"
+                    fill="var(--color-desktop)"
+                    fillOpacity={0.4}
+                    stroke="var(--color-desktop)"
+                  />
+                </AreaChart>
+              </ChartContainer>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
