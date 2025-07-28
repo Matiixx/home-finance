@@ -27,3 +27,17 @@ export const addAsset = mutation({
     });
   },
 });
+
+export const updateAsset = mutation({
+  args: {
+    id: v.id("asset"),
+    name: v.string(),
+    description: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.patch(args.id, {
+      name: args.name,
+      description: args.description,
+    });
+  },
+});
