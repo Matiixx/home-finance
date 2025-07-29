@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useMutation, useQuery } from "convex/react";
 import dayjs from "dayjs";
@@ -20,6 +19,7 @@ import { Label } from "~/components/ui/label";
 import { formatCurrency } from "~/lib/utils";
 
 import { api } from "../../../convex/_generated/api";
+import { HeaderButtons } from "../_components/HeaderButtons";
 
 export default function Home() {
   const session = useSession();
@@ -54,9 +54,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <Link href="/">
-          <Button variant="outline">Home</Button>
-        </Link>
+        <HeaderButtons />
 
         <Card className="w-full max-w-2xl border border-gray-200">
           <CardHeader>

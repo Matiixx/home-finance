@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 
 import dayjs from "dayjs";
 
-import { Button } from "~/components/ui/button";
 import {
   ChartContainer,
   ChartTooltip,
@@ -24,6 +22,7 @@ import {
 } from "recharts";
 
 import { api } from "../../../convex/_generated/api";
+import { HeaderButtons } from "../_components/HeaderButtons";
 
 const chartConfig = {
   desktop: {
@@ -43,9 +42,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
       <div className="container flex flex-col items-center justify-center gap-6 px-4 py-16">
-        <Link href="/">
-          <Button variant="outline">Home</Button>
-        </Link>
+        <HeaderButtons />
 
         <Card className="w-full border border-gray-200">
           <CardHeader>
