@@ -1,3 +1,4 @@
+import { groupBy, keys } from "lodash";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -39,5 +40,22 @@ export const updateAsset = mutation({
       name: args.name,
       description: args.description,
     });
+  },
+});
+
+export const getLastRecord = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const records = await ctx.db
+      .query("assetRecord")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .collect();
+
+    const groupedRecords = groupBy(records, (record) => record.date);
+    const latestDate = keys(groupedRecords).sort().pop();
+
+    return latestDate
+      ? groupBy(groupedRecords[latestDate], (record) => record.assetId)
+      : null;
   },
 });

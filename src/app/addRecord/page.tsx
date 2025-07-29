@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useMutation, useQuery } from "convex/react";
 import dayjs from "dayjs";
@@ -30,7 +30,18 @@ export default function Home() {
     api.userAssets.getUserAssets,
     session.data?.user?.id ? { userId: session.data.user.id } : "skip",
   );
+  const lastRecord = useQuery(
+    api.userAssets.getLastRecord,
+    session.data?.user?.id ? { userId: session.data.user.id } : "skip",
+  );
   const addRecords = useMutation(api.assetRecords.addAssetsRecords);
+
+  const lastRecordTotal = useMemo(() => {
+    return reduce(lastRecord, (acc, r) => acc + r[0]!.value, 0);
+  }, [lastRecord]);
+  const currentTotal = useMemo(() => {
+    return reduce(values, (acc, value) => acc + value, 0);
+  }, [values]);
 
   const handleAddRecord = () => {
     const isValid =
@@ -90,7 +101,11 @@ export default function Home() {
                     </Label>
                     <Input
                       type="number"
-                      placeholder="0.00"
+                      placeholder={
+                        lastRecord?.[asset._id]
+                          ? formatCurrency(lastRecord[asset._id]![0]!.value)
+                          : "0.00"
+                      }
                       value={values[asset._id] ?? ""}
                       onChange={(e) =>
                         setValues({
@@ -104,11 +119,50 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div className="flex justify-end pt-4">
-              <Label className="text-base font-medium text-black">
-                Total Value:{" "}
-                {formatCurrency(reduce(values, (acc, value) => acc + value, 0))}
-              </Label>
+
+            <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">
+                    Current Total:
+                  </span>
+                  <span className="text-lg font-bold text-black">
+                    {" "}
+                    {formatCurrency(
+                      reduce(values, (acc, value) => acc + value, 0),
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">Last Record:</span>
+                  <span className="text-sm text-gray-700">
+                    {formatCurrency(lastRecordTotal)}
+                  </span>
+                </div>
+
+                <hr className="border-gray-300" />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">
+                    vs Last Record:
+                  </span>
+                  <span
+                    className={`text-sm font-semibold ${
+                      currentTotal - lastRecordTotal >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {currentTotal - lastRecordTotal >= 0 ? "+" : ""}
+                    {formatCurrency(currentTotal - lastRecordTotal)} ({" "}
+                    {currentTotal - lastRecordTotal >= 0 ? "+" : ""}
+                    {(
+                      ((currentTotal - lastRecordTotal) / lastRecordTotal) *
+                      100
+                    ).toFixed(2)}
+                    % )
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="pt-4">
