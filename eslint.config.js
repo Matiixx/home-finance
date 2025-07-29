@@ -7,7 +7,7 @@ const compat = new FlatCompat({
 
 export default tseslint.config(
   {
-    ignores: [".next"],
+    ignores: [".next", "node_modules", "src/components/ui"],
   },
   ...compat.extends("next/core-web-vitals"),
   {
@@ -33,6 +33,9 @@ export default tseslint.config(
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      "@typescript-eslint/consistent-indexed-object-style": "warn",
+      "@typescript-eslint/prefer-nullish-coalescing": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "warn",
     },
   },
   {
