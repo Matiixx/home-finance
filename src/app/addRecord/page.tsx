@@ -37,7 +37,11 @@ export default function Home() {
   const addRecords = useMutation(api.assetRecords.addAssetsRecords);
 
   const lastRecordTotal = useMemo(() => {
-    return reduce(lastRecord, (acc, r) => acc + r[0]!.value, 0);
+    return reduce(
+      lastRecord?.assetRecords,
+      (acc, r) => acc + (r?.value ?? 0),
+      0,
+    );
   }, [lastRecord]);
   const currentTotal = useMemo(() => {
     return reduce(values, (acc, value) => acc + value, 0);
@@ -102,8 +106,12 @@ export default function Home() {
                     <Input
                       type="number"
                       placeholder={
-                        lastRecord?.[asset._id]
-                          ? formatCurrency(lastRecord[asset._id]![0]!.value)
+                        lastRecord?.assetRecords
+                          ? formatCurrency(
+                              lastRecord.assetRecords.find(
+                                (r) => r?.assetId === asset._id,
+                              )?.value ?? 0,
+                            )
                           : "0.00"
                       }
                       value={values[asset._id] ?? ""}

@@ -1,14 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, usePaginatedQuery, useQuery } from "convex/react";
 
 import find from "lodash/find";
 import map from "lodash/map";
 import reduce from "lodash/reduce";
-import sortBy from "lodash/sortBy";
-import toPairs from "lodash/toPairs";
 
 import { format } from "date-fns";
 import { Calendar, Trash2 } from "lucide-react";
@@ -34,17 +31,17 @@ export default function Home() {
     session.data?.user?.id ? { userId: session.data.user.id } : "skip",
   );
 
-  const assetsHistory = useQuery(
+  const { results: assetsHistory } = usePaginatedQuery(
     api.assetRecords.getAssetHistory,
-    session.data?.user?.id ? { userId: session.data.user.id } : "skip",
+    session.data?.user?.id
+      ? {
+          userId: session.data.user.id,
+        }
+      : "skip",
+    { initialNumItems: 10 },
   );
 
   const deleteAssetRecord = useMutation(api.assetRecords.deleteAssetRecord);
-
-  const sortedAssetsHistory = useMemo(() => {
-    const pairs = toPairs(assetsHistory);
-    return sortBy(pairs, (pair) => pair[0]);
-  }, [assetsHistory]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
@@ -61,7 +58,7 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {map(sortedAssetsHistory, ([_date, record]) => {
+            {map(assetsHistory, (record) => {
               return (
                 <Card
                   key={record.date}
@@ -83,7 +80,7 @@ export default function Home() {
 
                         {/* Assets Grid */}
                         <div className="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
-                          {map(record.assetValues, ({ value }, assetId) => (
+                          {map(record.assetRecords, ({ value, assetId }) => (
                             <div
                               key={assetId}
                               className="rounded-lg bg-gray-50 p-3"
@@ -107,7 +104,7 @@ export default function Home() {
                             <div className="text-xl font-bold">
                               {formatCurrency(
                                 reduce(
-                                  record.assetValues,
+                                  record.assetRecords,
                                   (acc, { value }) => acc + value,
                                   0,
                                 ),
@@ -123,10 +120,7 @@ export default function Home() {
                         size="sm"
                         onClick={() =>
                           deleteAssetRecord({
-                            ids: map(
-                              record.assetValues,
-                              ({ assetRecordId }) => assetRecordId,
-                            ),
+                            ids: map(record.assetRecords, ({ _id }) => _id),
                           })
                         }
                         className="ml-4 border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50"

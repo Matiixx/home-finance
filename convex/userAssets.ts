@@ -47,15 +47,21 @@ export const getLastRecord = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
     const records = await ctx.db
-      .query("assetRecord")
+      .query("assetUserRecord")
+      .withIndex("by_date")
       .filter((q) => q.eq(q.field("userId"), args.userId))
-      .collect();
+      .order("desc")
+      .first();
 
-    const groupedRecords = groupBy(records, (record) => record.date);
-    const latestDate = keys(groupedRecords).sort().pop();
+    if (!records) return null;
 
-    return latestDate
-      ? groupBy(groupedRecords[latestDate], (record) => record.assetId)
-      : null;
+    const assetRecords = await Promise.all(
+      records.assetRecords.map(async (ar) => {
+        const assetRecord = await ctx.db.get(ar);
+        return assetRecord;
+      }),
+    );
+
+    return { ...records, assetRecords };
   },
 });

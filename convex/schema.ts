@@ -25,8 +25,13 @@ export default defineSchema({
 
   assetRecord: defineTable({
     assetId: v.string(),
+    assetName: v.string(),
     value: v.number(),
-    date: v.number(),
-    userId: v.string(),
   }),
+
+  assetUserRecord: defineTable({
+    userId: v.string(),
+    date: v.number(),
+    assetRecords: v.array(v.id("assetRecord")),
+  }).index("by_date", ["date"]),
 });

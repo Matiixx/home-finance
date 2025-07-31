@@ -1,27 +1,11 @@
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 
 import reduce from "lodash/reduce";
 import sortBy from "lodash/sortBy";
+import sum from "lodash/sum";
 
 import { mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
-
-export const addAssetRecord = mutation({
-  args: {
-    value: v.number(),
-    date: v.number(),
-    assetId: v.string(),
-    userId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    return await ctx.db.insert("assetRecord", {
-      value: args.value,
-      date: args.date,
-      assetId: args.assetId,
-      userId: args.userId,
-    });
-  },
-});
 
 export const addAssetsRecords = mutation({
   args: {
@@ -29,7 +13,7 @@ export const addAssetsRecords = mutation({
       v.object({
         value: v.number(),
         date: v.number(),
-        assetId: v.string(),
+        assetId: v.id("asset"),
         userId: v.string(),
       }),
     ),
@@ -37,14 +21,24 @@ export const addAssetsRecords = mutation({
   handler: async (ctx, args) => {
     const newRecords = args.values;
 
-    for (const value of newRecords) {
-      await ctx.db.insert("assetRecord", {
-        value: value.value,
-        date: value.date,
-        assetId: value.assetId,
-        userId: value.userId,
-      });
-    }
+    const newIds = await Promise.all(
+      newRecords.map(async (value) => {
+        const assetName = await ctx.db.get(value.assetId);
+        return ctx.db.insert("assetRecord", {
+          value: value.value,
+          assetId: value.assetId,
+          assetName: assetName!.name,
+          // date: value.date,
+          // userId: value.userId,
+        });
+      }),
+    );
+
+    await ctx.db.insert("assetUserRecord", {
+      date: newRecords[0]!.date,
+      assetRecords: newIds,
+      userId: newRecords[0]!.userId,
+    });
   },
 });
 
@@ -54,17 +48,25 @@ export const getAssetRecords = query({
   },
   handler: async (ctx, args) => {
     const userRecords = await ctx.db
-      .query("assetRecord")
+      .query("assetUserRecord")
       .filter((q) => q.eq(q.field("userId"), args.userId))
       .collect();
-    const groupedRecords = reduce(
+
+    const groupedRecords = await reduce(
       userRecords,
-      (acc, record) => {
+      async (accPromise, record) => {
+        const acc = await accPromise;
         acc[record.date] = acc[record.date] ?? { value: 0, date: record.date };
-        acc[record.date]!.value += record.value;
+        const assetValues = await Promise.all(
+          record.assetRecords.map(async (ar) => {
+            const assetRecord = await ctx.db.get(ar);
+            return assetRecord!.value;
+          }),
+        );
+        acc[record.date]!.value += sum(assetValues);
         return acc;
       },
-      {} as Record<number, { value: number; date: number }>,
+      Promise.resolve({} as Record<number, { value: number; date: number }>),
     );
     const sortedRecords = sortBy(groupedRecords, (a) => a.date);
     return sortedRecords;
@@ -73,43 +75,30 @@ export const getAssetRecords = query({
 
 export const getAssetHistory = query({
   args: {
+    paginationOpts: paginationOptsValidator,
     userId: v.string(),
   },
   handler: async (ctx, args) => {
     const records = await ctx.db
-      .query("assetRecord")
+      .query("assetUserRecord")
+      .withIndex("by_date")
       .filter((q) => q.eq(q.field("userId"), args.userId))
-      .collect();
+      .order("desc")
+      .paginate(args.paginationOpts);
 
-    const groupedRecords = reduce(
-      records,
-      (acc, record) => {
-        acc[record.date] = acc[record.date] ?? {
-          date: record.date,
-          assetValues: {},
-        };
-        acc[record.date]!.assetValues[record.assetId] = {
-          value: record.value,
-          assetRecordId: record._id,
-        };
-        return acc;
-      },
-      {} as Record<
-        number,
-        {
-          date: number;
-          assetValues: Record<
-            string,
-            {
-              value: number;
-              assetRecordId: Id<"assetRecord">;
-            }
-          >;
-        }
-      >,
+    const assetValues = await Promise.all(
+      records.page.map(async (record) => {
+        const assetRecords = await Promise.all(
+          record.assetRecords.map(async (ar) => {
+            const assetRecord = await ctx.db.get(ar);
+            return assetRecord!;
+          }),
+        );
+        return { ...record, assetRecords };
+      }),
     );
 
-    return groupedRecords;
+    return { ...records, page: assetValues };
   },
 });
 
