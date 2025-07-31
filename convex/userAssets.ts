@@ -1,12 +1,9 @@
-import { groupBy, keys } from "lodash";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getUserAssets = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    console.log("🚀 ~ getUserAssets ~ args:", args);
-
     return ctx.db
       .query("asset")
       .filter((q) => q.eq(q.field("userId"), args.userId))
