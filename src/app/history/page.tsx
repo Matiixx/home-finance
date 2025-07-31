@@ -31,7 +31,11 @@ export default function Home() {
     session.data?.user?.id ? { userId: session.data.user.id } : "skip",
   );
 
-  const { results: assetsHistory } = usePaginatedQuery(
+  const {
+    status,
+    results: assetsHistory,
+    loadMore,
+  } = usePaginatedQuery(
     api.assetRecords.getAssetHistory,
     session.data?.user?.id
       ? {
@@ -134,6 +138,16 @@ export default function Home() {
             })}
           </CardContent>
         </Card>
+
+        {status !== "Exhausted" && (
+          <Button
+            className="w-1/2 text-lg"
+            size="lg"
+            onClick={() => loadMore(5)}
+          >
+            Load More
+          </Button>
+        )}
       </div>
     </main>
   );
