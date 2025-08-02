@@ -8,7 +8,7 @@ import map from "lodash/map";
 import reduce from "lodash/reduce";
 
 import { format } from "date-fns";
-import { Calendar, Trash2 } from "lucide-react";
+import { Calendar, LoaderCircle, Trash2 } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -58,6 +58,11 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {status === "LoadingFirstPage" && (
+              <div className="my-6 flex w-full items-center justify-center">
+                <LoaderCircle className="h-12 w-12 animate-spin" />
+              </div>
+            )}
             {map(assetsHistory, (record) => {
               return (
                 <Card
