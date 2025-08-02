@@ -37,11 +37,7 @@ export default function Home() {
     loadMore,
   } = usePaginatedQuery(
     api.assetRecords.getAssetHistory,
-    session.data?.user?.id
-      ? {
-          userId: session.data.user.id,
-        }
-      : "skip",
+    session.data?.user?.id ? { userId: session.data.user.id } : "skip",
     { initialNumItems: 10 },
   );
 
