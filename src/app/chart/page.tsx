@@ -1,9 +1,13 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 
 import dayjs from "dayjs";
+
+import forEach from "lodash/forEach";
+import map from "lodash/map";
 
 import {
   ChartContainer,
@@ -11,7 +15,14 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "~/components/ui/chart";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
 import {
   Area,
   AreaChart,
@@ -25,19 +36,47 @@ import { api } from "../../../convex/_generated/api";
 import { HeaderButtons } from "../_components/HeaderButtons";
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-2)",
-  },
+  desktop: { label: "Desktop", color: "var(--chart-2)" },
 } satisfies ChartConfig;
 
 export default function Home() {
   const session = useSession();
+  const [accumulative, setAccumulative] = useState(true);
 
   const assetsRecords = useQuery(
     api.assetRecords.getAssetRecords,
     session.data?.user?.id ? { userId: session.data.user.id } : "skip",
   );
+
+  const data = useMemo(() => {
+    if (accumulative) {
+      return assetsRecords ?? [];
+    }
+
+    const perAsset = map(assetsRecords, (record) => {
+      const obj: Record<string, number> = {
+        date: record.date,
+        value: record.value,
+      };
+      forEach(
+        record.assetRecords,
+        (asset) => (obj[asset.assetName] = asset.value),
+      );
+      return obj;
+    });
+    return perAsset;
+  }, [assetsRecords, accumulative]);
+
+  const userAssets = useMemo(() => {
+    if (!assetsRecords) return [];
+    const assetNames = new Set<string>();
+    forEach(assetsRecords, (record) => {
+      forEach(record.assetRecords, (asset) => {
+        assetNames.add(asset.assetName);
+      });
+    });
+    return Array.from(assetNames);
+  }, [assetsRecords]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white text-black">
@@ -49,12 +88,20 @@ export default function Home() {
             <CardTitle className="text-2xl font-semibold text-black">
               Chart
             </CardTitle>
+            <CardDescription>
+              <Button
+                variant={accumulative ? "outline" : "default"}
+                onClick={() => setAccumulative(!accumulative)}
+              >
+                {accumulative ? "Acuumulative" : "Per Asset"}
+              </Button>
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width={"100%"} height={500}>
               <ChartContainer config={chartConfig} className="h-full w-full">
                 <AreaChart
-                  data={assetsRecords ?? []}
+                  data={data ?? []}
                   margin={{ left: 12, right: 12, bottom: 20, top: 20 }}
                 >
                   <CartesianGrid vertical={false} />
@@ -67,7 +114,6 @@ export default function Home() {
                     axisLine={false}
                   />
                   <YAxis
-                    dataKey="value"
                     tickFormatter={(value: number) => {
                       return value.toLocaleString() + " PLN";
                     }}
@@ -77,13 +123,26 @@ export default function Home() {
                     content={<ChartTooltipContent indicator="dot" hideLabel />}
                   />
 
-                  <Area
-                    dataKey="value"
-                    type="linear"
-                    fill="var(--color-desktop)"
-                    fillOpacity={0.4}
-                    stroke="var(--color-desktop)"
-                  />
+                  {accumulative ? (
+                    <Area
+                      dataKey="value"
+                      type="linear"
+                      fill="var(--color-desktop)"
+                      fillOpacity={0.4}
+                      stroke="var(--color-desktop)"
+                    />
+                  ) : (
+                    map(userAssets, (assetName, index) => (
+                      <Area
+                        key={assetName}
+                        dataKey={assetName}
+                        type="linear"
+                        fill={colors[index % colors.length]}
+                        fillOpacity={0.2}
+                        stroke={colors[index % colors.length]}
+                      />
+                    ))
+                  )}
                 </AreaChart>
               </ChartContainer>
             </ResponsiveContainer>
@@ -93,3 +152,21 @@ export default function Home() {
     </main>
   );
 }
+
+const colors = [
+  "#8884d8",
+  "#82ca9d",
+  "#ffc658",
+  "#ff7300",
+  "#ff0000",
+  "#00ff00",
+  "#0000ff",
+  "#ffff00",
+  "#ff00ff",
+  "#00ffff",
+  "#800080",
+  "#008000",
+  "#000080",
+  "#800000",
+  "#808000",
+];

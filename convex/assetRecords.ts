@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 
+import map from "lodash/map";
 import reduce from "lodash/reduce";
 import sortBy from "lodash/sortBy";
 import sum from "lodash/sum";
@@ -56,18 +57,38 @@ export const getAssetRecords = query({
       userRecords,
       async (accPromise, record) => {
         const acc = await accPromise;
-        acc[record.date] = acc[record.date] ?? { value: 0, date: record.date };
+        acc[record.date] = acc[record.date] ?? {
+          value: 0,
+          date: record.date,
+          assetRecords: [],
+        };
+
         const assetValues = await Promise.all(
           record.assetRecords.map(async (ar) => {
             const assetRecord = await ctx.db.get(ar);
-            return assetRecord!.value;
+            return {
+              value: assetRecord!.value,
+              assetName: assetRecord!.assetName,
+            };
           }),
         );
-        acc[record.date]!.value += sum(assetValues);
+
+        acc[record.date]!.value += sum(map(assetValues, (a) => a?.value));
+        acc[record.date]!.assetRecords = assetValues;
         return acc;
       },
-      Promise.resolve({} as Record<number, { value: number; date: number }>),
+      Promise.resolve(
+        {} as Record<
+          number,
+          {
+            value: number;
+            date: number;
+            assetRecords: { value: number; assetName: string }[];
+          }
+        >,
+      ),
     );
+
     const sortedRecords = sortBy(groupedRecords, (a) => a.date);
     return sortedRecords;
   },
