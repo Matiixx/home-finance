@@ -1,11 +1,12 @@
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
+import { SessionProvider } from "next-auth/react";
 import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
+
 import { ConvexClientProvider } from "./ConvexClientProvider";
-import { SessionProvider } from "next-auth/react";
 import { UserProvider } from "./_components/UserProvider";
 
 export const metadata: Metadata = {
