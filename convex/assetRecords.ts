@@ -29,8 +29,6 @@ export const addAssetsRecords = mutation({
           value: value.value,
           assetId: value.assetId,
           assetName: assetName!.name,
-          // date: value.date,
-          // userId: value.userId,
         });
       }),
     );
