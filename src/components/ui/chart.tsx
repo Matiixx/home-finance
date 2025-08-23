@@ -162,13 +162,26 @@ function ChartTooltipContent({
     labelClassName,
     config,
     labelKey,
-  ])
+  ]);
 
-  if (!active || !payload?.length) {
-    return null
+  const sortedPayload = React.useMemo(() => {
+    return payload?.sort((a, b) => {
+      const aValue = a.value as number;
+      const bValue = b.value as number;
+
+      if (aValue === undefined || bValue === undefined) {
+        return 0;
+      }
+
+      return bValue - aValue;
+    });
+  }, [payload]);
+
+  if (!active || !sortedPayload?.length) {
+    return null;
   }
 
-  const nestLabel = payload.length === 1 && indicator !== "dot"
+  const nestLabel = sortedPayload.length === 1 && indicator !== "dot";
 
   return (
     <div
@@ -179,7 +192,7 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload.map((item, index) => {
+        {sortedPayload.map((item, index) => {
           const key = `${nameKey || item.name || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
           const indicatorColor = color || item.payload.fill || item.color
@@ -222,8 +235,8 @@ function ChartTooltipContent({
                   )}
                   <div
                     className={cn(
-                      "flex flex-1 justify-between leading-none",
-                      nestLabel ? "items-end" : "items-center"
+                      "flex flex-1 justify-between gap-1.5 leading-none",
+                      nestLabel ? "items-end" : "items-center",
                     )}
                   >
                     <div className="grid gap-1.5">
