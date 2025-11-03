@@ -120,7 +120,17 @@ export default function Home() {
                   />
                   <ChartTooltip
                     cursor={false}
-                    content={<ChartTooltipContent indicator="dot" hideLabel />}
+                    content={
+                      <ChartTooltipContent
+                        indicator="dot"
+                        labelFormatter={(_v, payload) => {
+                          const { date } = payload[0]!.payload as {
+                            date: number;
+                          };
+                          return dayjs(date).format("DD/MM/YYYY");
+                        }}
+                      />
+                    }
                   />
 
                   {accumulative ? (
