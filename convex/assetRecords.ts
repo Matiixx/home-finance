@@ -129,3 +129,14 @@ export const deleteAssetRecord = mutation({
     }
   },
 });
+
+export const editAssetRecord = mutation({
+  args: {
+    edits: v.array(v.object({ _id: v.id("assetRecord"), value: v.number() })),
+  },
+  handler: async (ctx, args) => {
+    for (const edit of args.edits) {
+      await ctx.db.patch(edit._id, { value: edit.value });
+    }
+  },
+});
