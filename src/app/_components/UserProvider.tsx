@@ -7,11 +7,11 @@ import { api } from "../../../convex/_generated/api";
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
-  const createUser = useMutation(api.users.createUser);
+  const upsertUser = useMutation(api.users.upsertUser);
 
   useEffect(() => {
     if (session.data?.user) {
-      void createUser({
+      void upsertUser({
         id: session.data.user.id,
         name: session.data.user.name ?? "",
         email: session.data.user.email ?? "",
