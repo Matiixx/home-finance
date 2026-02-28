@@ -98,64 +98,70 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width={"100%"} height={500}>
-              <ChartContainer config={chartConfig} className="h-full w-full">
-                <AreaChart
-                  data={data ?? []}
-                  margin={{ left: 12, right: 12, bottom: 20, top: 20 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value: number) => {
-                      return dayjs(value).format("DD/MM/YYYY");
-                    }}
-                    tickMargin={8}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tickFormatter={(value: number) => {
-                      return value.toLocaleString() + " PLN";
-                    }}
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={
-                      <ChartTooltipContent
-                        indicator="dot"
-                        labelFormatter={(_v, payload) => {
-                          const { date } = payload[0]!.payload as {
-                            date: number;
-                          };
-                          return dayjs(date).format("DD/MM/YYYY");
-                        }}
-                      />
-                    }
-                  />
-
-                  {accumulative ? (
-                    <Area
-                      dataKey="value"
-                      type="linear"
-                      fill="var(--color-desktop)"
-                      fillOpacity={0.4}
-                      stroke="var(--color-desktop)"
+            {!assetsRecords ? (
+              <div className="flex h-[500px] w-full items-center justify-center">
+                <p className="text-gray-400">Loading chart...</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width={"100%"} height={500}>
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <AreaChart
+                    data={data}
+                    margin={{ left: 12, right: 12, bottom: 20, top: 20 }}
+                  >
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(value: number) => {
+                        return dayjs(value).format("DD/MM/YYYY");
+                      }}
+                      tickMargin={8}
+                      axisLine={false}
                     />
-                  ) : (
-                    map(userAssets, (assetName, index) => (
+                    <YAxis
+                      tickFormatter={(value: number) => {
+                        return value.toLocaleString() + " PLN";
+                      }}
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={
+                        <ChartTooltipContent
+                          indicator="dot"
+                          labelFormatter={(_v, payload) => {
+                            const { date } = payload[0]!.payload as {
+                              date: number;
+                            };
+                            return dayjs(date).format("DD/MM/YYYY");
+                          }}
+                        />
+                      }
+                    />
+
+                    {accumulative ? (
                       <Area
-                        key={assetName}
-                        dataKey={assetName}
+                        dataKey="value"
                         type="linear"
-                        fill={colors[index % colors.length]}
-                        fillOpacity={0.2}
-                        stroke={colors[index % colors.length]}
+                        fill="var(--color-desktop)"
+                        fillOpacity={0.4}
+                        stroke="var(--color-desktop)"
                       />
-                    ))
-                  )}
-                </AreaChart>
-              </ChartContainer>
-            </ResponsiveContainer>
+                    ) : (
+                      map(userAssets, (assetName, index) => (
+                        <Area
+                          key={assetName}
+                          dataKey={assetName}
+                          type="linear"
+                          fill={colors[index % colors.length]}
+                          fillOpacity={0.2}
+                          stroke={colors[index % colors.length]}
+                        />
+                      ))
+                    )}
+                  </AreaChart>
+                </ChartContainer>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
